@@ -1,8 +1,22 @@
+const express = require("express");
+const cors = require("cors");
+const app = express();
+app.options('*', cors())
 const io = require("socket.io")(8800, {
   cors: {
-    origin: "http://localhost:3000",
+    // origin: "http://localhost:3000",
+    origin: {
+      origin: [
+        "https://www.codeusinfo.timelesswatch.shop",
+        "https://www.codeusinfo.timelesswatch.shop/",
+        "https://codeusinfo.timelesswatch.shop",
+        "https://codeusinfo.timelesswatch.shop/",
+        "http://localhost:3000",
+      ],
+    },
   },
 });
+app.use(cors());
 let activeUsers = [];
 io.on("connection", (socket) => {
   //add new user
@@ -14,20 +28,20 @@ io.on("connection", (socket) => {
         socketId: socket.id,
       });
     }
-    console.log("Connected Users",activeUsers);
+    console.log("Connected Users", activeUsers);
     io.emit("get-users", activeUsers);
   });
   //send message
-  socket.on("send-message",(data)=>{
+  socket.on("send-message", (data) => {
     console.log(data);
-    const {receiverId}=data;
-    const user=activeUsers.find((user)=>user.userId===receiverId)
-    console.log("sendin from socket to:",receiverId);
-    console.log("Data",data);
-    if(user){
-      io.to(user.socketId).emit("receive-message",data)
+    const { receiverId } = data;
+    const user = activeUsers.find((user) => user.userId === receiverId);
+    console.log("sendin from socket to:", receiverId);
+    console.log("Data", data);
+    if (user) {
+      io.to(user.socketId).emit("receive-message", data);
     }
-  })
+  });
   socket.on("disconnect", () => {
     activeUsers = activeUsers.filter((user) => user.socketId !== socket.id);
     console.log("user disconnected", activeUsers);
